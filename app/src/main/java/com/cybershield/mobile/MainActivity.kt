@@ -201,7 +201,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun inspectApk(uri: Uri): String {
+private fun inspectApk(uri: Uri): String {
     try {
         val path = cacheDir.resolve("selected.apk")
 
@@ -214,7 +214,7 @@ class MainActivity : Activity() {
         val info = packageManager.getPackageArchiveInfo(
             path.absolutePath,
             PackageManager.GET_PERMISSIONS
-        ) ?: return "APK paketi okunamadı veya geçerli değil."
+        ) ?: return "APK paketi okunamadı."
 
         val perms: List<String> =
             info.requestedPermissions?.toList() ?: emptyList()
@@ -228,27 +228,24 @@ class MainActivity : Activity() {
             permission.contains("CALL_LOG")
         }
 
-        return "Paket: ${info.packageName}\n" +
-            "Sürüm: ${info.versionName ?: "bilinmiyor"}\n" +
-            "İzin sayısı: ${perms.size}\n\n" +
-            "İzinler:\n" +
-            (perms.joinToString("\n").ifBlank { "İzin listesi bulunamadı." }) +
-            "\n\nDikkat gerektiren izinler:\n" +
-            (sensitive.joinToString("\n").ifBlank { "Bu basit filtrede eşleşme yok." }) +
-            "\n\nBu rapor sınırlıdır; APK'nın güvenli olduğunu garanti etmez."
+        return """
+            Paket: ${info.packageName}
+            Sürüm: ${info.versionName ?: "bilinmiyor"}
+            İzin sayısı: ${perms.size}
+
+            İzinler:
+            ${perms.joinToString("\n").ifBlank { "İzin listesi bulunamadı." }}
+
+            Dikkat gerektiren izinler:
+            ${sensitive.joinToString("\n").ifBlank { "Eşleşme yok." }}
+
+            Bu rapor sınırlıdır; APK'nın güvenli olduğunu garanti etmez.
+        """.trimIndent()
 
     } catch (e: Exception) {
         return "APK incelenemedi: ${e.message ?: "bilinmeyen hata"}"
     }
 }
-            "Paket: ${info.packageName}\nSürüm: ${info.versionName ?: "bilinmiyor"}\n" +
-                "İzin sayısı: ${perms.size}\n\nİzinler:\n" +
-                (perms.joinToString("\n").ifBlank { "İzin listesi bulunamadı." }) +
-                "\n\nDikkat gerektiren izinler:\n" +
-                (sensitive.joinToString("\n").ifBlank { "Bu basit filtrede eşleşme yok." }) +
-                "\n\nBu rapor statik ve sınırlıdır; APK'yı güvenli ilan etmez."
-        } catch (e: Exception) { "APK incelenemedi: ${e.message ?: "bilinmeyen hata"}" }
-    }
 
     private fun showDevice() {
         base("Cihaz kontrolü", "Android'in sunduğu temel durum bilgileri.")
