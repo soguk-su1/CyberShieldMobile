@@ -202,23 +202,45 @@ class MainActivity : Activity() {
     }
 
     private fun inspectApk(uri: Uri): String {
-        return try {
-            val path = cacheDir.resolve("selected.apk")
-            contentResolver.openInputStream(uri)?.use { input -> path.outputStream().use { input.copyTo(it) } }
-                ?: return "Dosya okunamadı."
-            val info = packageManager.getPackageArchiveInfo(path.absolutePath, PackageManager.GET_PERMISSIONS)
-                ?: return "APK paketi okunamadı veya dosya geçerli bir APK değil."
-           val perms: List<String> =
-    info.requestedPermissions?.map { permission -> permission } ?: emptyList()
-            val sensitive: List<String> = perms.filter { permission ->
-    permission.contains("SMS") ||
-    permission.contains("CONTACTS") ||
-    permission.contains("RECORD_AUDIO") ||
-    permission.contains("CAMERA") ||
-    permission.contains("LOCATION") ||
-    permission.contains("CALL_LOG")
-}
+    try {
+        val path = cacheDir.resolve("selected.apk")
+
+        contentResolver.openInputStream(uri)?.use { input ->
+            path.outputStream().use { output ->
+                input.copyTo(output)
             }
+        } ?: return "Dosya okunamadı."
+
+        val info = packageManager.getPackageArchiveInfo(
+            path.absolutePath,
+            PackageManager.GET_PERMISSIONS
+        ) ?: return "APK paketi okunamadı veya geçerli değil."
+
+        val perms: List<String> =
+            info.requestedPermissions?.toList() ?: emptyList()
+
+        val sensitive: List<String> = perms.filter { permission ->
+            permission.contains("SMS") ||
+            permission.contains("CONTACTS") ||
+            permission.contains("RECORD_AUDIO") ||
+            permission.contains("CAMERA") ||
+            permission.contains("LOCATION") ||
+            permission.contains("CALL_LOG")
+        }
+
+        return "Paket: ${info.packageName}\n" +
+            "Sürüm: ${info.versionName ?: "bilinmiyor"}\n" +
+            "İzin sayısı: ${perms.size}\n\n" +
+            "İzinler:\n" +
+            (perms.joinToString("\n").ifBlank { "İzin listesi bulunamadı." }) +
+            "\n\nDikkat gerektiren izinler:\n" +
+            (sensitive.joinToString("\n").ifBlank { "Bu basit filtrede eşleşme yok." }) +
+            "\n\nBu rapor sınırlıdır; APK'nın güvenli olduğunu garanti etmez."
+
+    } catch (e: Exception) {
+        return "APK incelenemedi: ${e.message ?: "bilinmeyen hata"}"
+    }
+}
             "Paket: ${info.packageName}\nSürüm: ${info.versionName ?: "bilinmiyor"}\n" +
                 "İzin sayısı: ${perms.size}\n\nİzinler:\n" +
                 (perms.joinToString("\n").ifBlank { "İzin listesi bulunamadı." }) +
