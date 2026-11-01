@@ -208,10 +208,16 @@ class MainActivity : Activity() {
                 ?: return "Dosya okunamadı."
             val info = packageManager.getPackageArchiveInfo(path.absolutePath, PackageManager.GET_PERMISSIONS)
                 ?: return "APK paketi okunamadı veya dosya geçerli bir APK değil."
-            val perms = info.requestedPermissions?.map { it.name } ?: emptyList()
-            val sensitive = perms.filter {
-                it.contains("SMS") || it.contains("CONTACTS") || it.contains("RECORD_AUDIO") ||
-                it.contains("CAMERA") || it.contains("LOCATION") || it.contains("CALL_LOG")
+           val perms: List<String> =
+    info.requestedPermissions?.map { permission -> permission } ?: emptyList()
+            val sensitive: List<String> = perms.filter { permission ->
+    permission.contains("SMS") ||
+    permission.contains("CONTACTS") ||
+    permission.contains("RECORD_AUDIO") ||
+    permission.contains("CAMERA") ||
+    permission.contains("LOCATION") ||
+    permission.contains("CALL_LOG")
+}
             }
             "Paket: ${info.packageName}\nSürüm: ${info.versionName ?: "bilinmiyor"}\n" +
                 "İzin sayısı: ${perms.size}\n\nİzinler:\n" +
